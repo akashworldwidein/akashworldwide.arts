@@ -1,10 +1,11 @@
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
 
-// Resize canvas for full screen
+// Resize canvas to fit screen
 function resizeCanvas() {
   canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight - document.querySelector(".toolbar").offsetHeight;
+  canvas.height =
+    window.innerHeight - document.querySelector(".toolbar").offsetHeight;
 }
 resizeCanvas();
 window.addEventListener("resize", resizeCanvas);
@@ -12,13 +13,15 @@ window.addEventListener("resize", resizeCanvas);
 let drawing = false;
 let currentColor = "#000000";
 let brushSize = 5;
+let isEraser = false;
 
-// Color picker
+// Color picker (switch back to brush)
 document.getElementById("colorPicker").addEventListener("change", (e) => {
   currentColor = e.target.value;
+  isEraser = false;
 });
 
-// Brush size
+// Brush / eraser size
 document.getElementById("brushSize").addEventListener("input", (e) => {
   brushSize = e.target.value;
 });
@@ -27,6 +30,11 @@ document.getElementById("brushSize").addEventListener("input", (e) => {
 document.getElementById("clear").addEventListener("click", () => {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   ctx.beginPath();
+});
+
+// Eraser button
+document.getElementById("eraser").addEventListener("click", () => {
+  isEraser = true;
 });
 
 // Save / Download drawing
@@ -44,17 +52,17 @@ document.getElementById("save").addEventListener("click", () => {
 canvas.addEventListener("touchstart", (e) => {
   drawing = true;
   ctx.beginPath();
-  draw(e);
+  drawTouch(e);
 });
 
-canvas.addEventListener("touchmove", draw);
+canvas.addEventListener("touchmove", drawTouch);
 
 canvas.addEventListener("touchend", () => {
   drawing = false;
   ctx.beginPath();
 });
 
-// Mouse Events (Optional – Desktop support)
+// Mouse Events (Desktop support)
 canvas.addEventListener("mousedown", (e) => {
   drawing = true;
   ctx.beginPath();
@@ -71,8 +79,8 @@ canvas.addEventListener("mouseup", () => {
   ctx.beginPath();
 });
 
-// Drawing function for touch
-function draw(e) {
+// Draw for touch
+function drawTouch(e) {
   if (!drawing) return;
 
   const touch = e.touches[0];
@@ -84,11 +92,18 @@ function draw(e) {
   e.preventDefault();
 }
 
-// Common draw line function
+// Common draw function
 function drawLine(x, y) {
   ctx.lineWidth = brushSize;
   ctx.lineCap = "round";
-  ctx.strokeStyle = currentColor;
+
+  if (isEraser) {
+    ctx.globalCompositeOperation = "destination-out";
+    ctx.strokeStyle = "rgba(0,0,0,1)";
+  } else {
+    ctx.globalCompositeOperation = "source-over";
+    ctx.strokeStyle = currentColor;
+  }
 
   ctx.lineTo(x, y);
   ctx.stroke();
