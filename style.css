@@ -1,0 +1,56 @@
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background: #111;
+  font-family: Arial, sans-serif;
+  overflow: hidden;
+}
+
+/* Top Toolbar */
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  background: #222;
+  border-bottom: 1px solid #333;
+}
+
+.toolbar input[type="color"] {
+  width: 40px;
+  height: 40px;
+  border: none;
+  padding: 0;
+  background: none;
+}
+
+.toolbar input[type="range"] {
+  flex: 1;
+}
+
+.toolbar button {
+  padding: 8px 12px;
+  background: #444;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.toolbar button:active {
+  background: #666;
+}
+
+/* Drawing Canvas */
+canvas {
+  display: block;
+  background: #fff;
+  width: 100vw;
+  height: calc(100vh - 60px);
+  touch-action: none; /* VERY IMPORTANT for mobile drawing */
+}
