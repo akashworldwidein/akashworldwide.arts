@@ -11,22 +11,24 @@ resizeCanvas();
 window.addEventListener("resize", resizeCanvas);
 
 let drawing = false;
-let currentColor = "#000000";
 let brushSize = 5;
+let currentColor = "#000000";
 let isEraser = false;
 
-// Color picker = Brush mode
-document.getElementById("colorPicker").addEventListener("change", (e) => {
+/* ========= CONTROLS ========= */
+
+// Color picker → Brush mode
+document.getElementById("colorPicker").addEventListener("input", (e) => {
   currentColor = e.target.value;
   isEraser = false;
 });
 
-// Brush / eraser size
+// Brush size
 document.getElementById("brushSize").addEventListener("input", (e) => {
   brushSize = e.target.value;
 });
 
-// Clear canvas
+// Clear
 document.getElementById("clear").addEventListener("click", () => {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 });
@@ -39,74 +41,28 @@ document.getElementById("eraser").addEventListener("click", () => {
 // Save
 document.getElementById("save").addEventListener("click", () => {
   const link = document.createElement("a");
-  link.download = `drawing-${Date.now()}.png`;
   link.href = canvas.toDataURL("image/png");
+  link.download = `drawing-${Date.now()}.png`;
   link.click();
 });
 
-/* =========================
-   TOUCH EVENTS (MOBILE)
-========================= */
-canvas.addEventListener("touchstart", (e) => {
+/* ========= DRAW LOGIC ========= */
+
+function startDraw(x, y) {
   drawing = true;
   ctx.beginPath();
+  ctx.moveTo(x, y);
+}
 
-  const touch = e.touches[0];
-  const rect = canvas.getBoundingClientRect();
-  ctx.moveTo(
-    touch.clientX - rect.left,
-    touch.clientY - rect.top
-  );
-
-  e.preventDefault();
-});
-
-canvas.addEventListener("touchmove", (e) => {
+function draw(x, y) {
   if (!drawing) return;
 
-  const touch = e.touches[0];
-  const rect = canvas.getBoundingClientRect();
-  drawLine(
-    touch.clientX - rect.left,
-    touch.clientY - rect.top
-  );
-
-  e.preventDefault();
-});
-
-canvas.addEventListener("touchend", () => {
-  drawing = false;
-  ctx.beginPath();
-});
-
-/* =========================
-   MOUSE EVENTS (DESKTOP)
-========================= */
-canvas.addEventListener("mousedown", (e) => {
-  drawing = true;
-  ctx.beginPath();
-  ctx.moveTo(e.offsetX, e.offsetY);
-});
-
-canvas.addEventListener("mousemove", (e) => {
-  if (!drawing) return;
-  drawLine(e.offsetX, e.offsetY);
-});
-
-canvas.addEventListener("mouseup", () => {
-  drawing = false;
-  ctx.beginPath();
-});
-
-/* =========================
-   DRAW FUNCTION
-========================= */
-function drawLine(x, y) {
   ctx.lineWidth = brushSize;
   ctx.lineCap = "round";
 
   if (isEraser) {
     ctx.globalCompositeOperation = "destination-out";
+    ctx.strokeStyle = "rgba(0,0,0,1)";
   } else {
     ctx.globalCompositeOperation = "source-over";
     ctx.strokeStyle = currentColor;
@@ -114,5 +70,46 @@ function drawLine(x, y) {
 
   ctx.lineTo(x, y);
   ctx.stroke();
-  ctx.moveTo(x, y);
 }
+
+function stopDraw() {
+  drawing = false;
+  ctx.beginPath();
+}
+
+/* ========= TOUCH EVENTS (MOBILE) ========= */
+
+canvas.addEventListener("touchstart", (e) => {
+  const rect = canvas.getBoundingClientRect();
+  const touch = e.touches[0];
+  startDraw(
+    touch.clientX - rect.left,
+    touch.clientY - rect.top
+  );
+  e.preventDefault();
+});
+
+canvas.addEventListener("touchmove", (e) => {
+  const rect = canvas.getBoundingClientRect();
+  const touch = e.touches[0];
+  draw(
+    touch.clientX - rect.left,
+    touch.clientY - rect.top
+  );
+  e.preventDefault();
+});
+
+canvas.addEventListener("touchend", stopDraw);
+
+/* ========= MOUSE EVENTS (DESKTOP) ========= */
+
+canvas.addEventListener("mousedown", (e) => {
+  startDraw(e.offsetX, e.offsetY);
+});
+
+canvas.addEventListener("mousemove", (e) => {
+  draw(e.offsetX, e.offsetY);
+});
+
+canvas.addEventListener("mouseup", stopDraw);
+canvas.addEventListener("mouseleave", stopDraw);
